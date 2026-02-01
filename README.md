@@ -14,7 +14,7 @@
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS + CSS Variables
-- **Package Manager**: pnpm（推奨）またはnpm
+- **Package Manager**: pnpm
 - **Node.js**: 20.11.0 (LTS)
 
 ## セットアップ

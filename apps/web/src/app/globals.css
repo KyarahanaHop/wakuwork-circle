@@ -165,6 +165,14 @@ body {
   border-color: var(--border);
 }
 
+.shadow-1 {
+  box-shadow: var(--shadow-1);
+}
+
+.shadow-2 {
+  box-shadow: var(--shadow-2);
+}
+
 /* OBS Overlay transparency support */
 .obs-transparent {
   background: transparent !important;

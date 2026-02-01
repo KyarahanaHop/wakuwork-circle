@@ -14,11 +14,9 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('simple');
-  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
-    setMounted(true);
     // Load saved theme from localStorage
     const saved = localStorage.getItem('wakuwork-theme') as Theme;
     if (saved && ['simple', 'cute', 'cool'].includes(saved)) {

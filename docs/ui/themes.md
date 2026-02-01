@@ -133,7 +133,7 @@ Cute/Coolテーマは半径・影・アニメーションを上書きします�
 ### Tailwind CSS
 
 ```tsx
-<div className="bg-surface text-text rounded-md shadow-1">
+<div className="bg-surface text-theme rounded-md shadow-1">
 ```
 
 ### JavaScript/TypeScript
