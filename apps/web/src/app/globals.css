@@ -40,6 +40,7 @@
 
 /* Cute Theme（パステル寄り）- 背景ほぼ白＋うっすらピンク */
 [data-theme="cute"] {
+  /* Colors */
   --bg: #fff8fb;
   --surface: #fff0f5;
   --surface2: #ffe4f0;
@@ -52,10 +53,25 @@
   --danger: #ff6b6b;
   --border: #ffcce0;
   --ring: #ff69b4;
+  
+  /* Shape - 丸く・ふわっと */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  
+  /* Shadow - 柔らかく */
+  --shadow-1: 0 2px 8px rgba(255, 105, 180, 0.1);
+  --shadow-2: 0 4px 16px rgba(255, 105, 180, 0.15);
+  
+  /* Motion - やわらかく */
+  --dur-1: 120ms;
+  --dur-2: 180ms;
+  --dur-3: 240ms;
 }
 
 /* Cool Theme（ダーク寄り）- 落ち着いた青系 */
 [data-theme="cool"] {
+  /* Colors */
   --bg: #0f172a;
   --surface: #1e293b;
   --surface2: #334155;
@@ -68,6 +84,49 @@
   --danger: #f43f5e;
   --border: #475569;
   --ring: #06b6d4;
+
+  /* Shape - シャープに */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+
+  /* Shadow - 深く鋭く（シアン/ブルー系） */
+  --shadow-1: 0 2px 8px rgba(6, 182, 212, 0.15);
+  --shadow-2: 0 4px 20px rgba(6, 182, 212, 0.25);
+
+  /* Motion - 素早く */
+  --dur-1: 100ms;
+  --dur-2: 150ms;
+  --dur-3: 200ms;
+}
+
+/* Overlay mode tokens - トークンとして定義（色直書きはテーマ定義内のみ許可） */
+[data-theme="simple"] {
+  --overlay-surface: rgba(0, 0, 0, 0.7);
+  --overlay-text: #ffffff;
+  --overlay-muted: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="cute"] {
+  --overlay-surface: rgba(255, 182, 193, 0.85);
+  --overlay-text: #4a4a4a;
+  --overlay-muted: rgba(74, 74, 74, 0.7);
+}
+
+[data-theme="cool"] {
+  --overlay-surface: rgba(15, 23, 42, 0.85);
+  --overlay-text: #f8fafc;
+  --overlay-muted: rgba(148, 163, 184, 0.8);
+}
+
+/* Overlay mode - 完全透過 */
+html[data-mode="overlay"] body {
+  background: transparent !important;
+}
+
+html[data-mode="overlay"] #__next,
+html[data-mode="overlay"] main {
+  background: transparent !important;
 }
 
 /* Base styles */
