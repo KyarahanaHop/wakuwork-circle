@@ -9,9 +9,6 @@ on:
 jobs:
   lint-and-build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./apps/web
     
     steps:
       - name: Checkout
@@ -21,14 +18,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: './apps/web/package-lock.json'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
+
+      - name: Check colors
+        run: pnpm check:colors
 
       - name: Lint
-        run: npm run lint
+        run: pnpm lint
 
       - name: Build
-        run: npm run build
+        run: pnpm build
