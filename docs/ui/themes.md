@@ -1,6 +1,9 @@
 # UIテーマ定義
 
-**SSoT**: このファイルが全てのテーマ変数の定義源です。  
+> **Version**: v0.1  
+> **Updated**: 2026-02-02  
+> **Authority**: このファイルが全テーマ変数の権威。globals.cssはここから生成。
+
 **生成先**: `apps/web/src/app/globals.css`
 
 ## 基本トークン（Simple Theme - デフォルト）
