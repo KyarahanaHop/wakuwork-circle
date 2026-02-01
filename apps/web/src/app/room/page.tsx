@@ -56,7 +56,7 @@ export default function RoomPage() {
               className="px-3 py-1 rounded-full text-sm font-medium"
               style={{ 
                 background: mockRoomData.status === 'working' ? 'var(--primary)' : 'var(--warning)',
-                color: mockRoomData.status === 'working' ? 'var(--primaryText)' : '#000'
+                color: mockRoomData.status === 'working' ? 'var(--primaryText)' : 'var(--text)'
               }}
             >
               {mockRoomData.status === 'working' ? '作業中' : '休憩中'}
@@ -89,7 +89,7 @@ export default function RoomPage() {
           className="w-full py-4 rounded-lg font-semibold text-lg transition-all"
           style={{ 
             background: isCompleted ? 'var(--success)' : 'var(--primary)',
-            color: isCompleted ? '#fff' : 'var(--primaryText)',
+            color: isCompleted ? 'var(--primaryText)' : 'var(--primaryText)',
             borderRadius: 'var(--r-md)'
           }}
         >

@@ -84,7 +84,7 @@ export default function DashboardPage() {
               className="px-4 py-2 rounded-lg font-medium transition-all"
               style={{ 
                 background: mockDashboardData.status === 'break' ? 'var(--warning)' : 'var(--surface2)',
-                color: mockDashboardData.status === 'break' ? '#000' : 'var(--text)'
+                color: mockDashboardData.status === 'break' ? 'var(--text)' : 'var(--text)'
               }}
             >
               休憩中
