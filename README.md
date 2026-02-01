@@ -27,25 +27,27 @@ cd wakuwork-circle
 # 2. Node.jsバージョン指定（.nvmrc参照）
 nvm use
 
-# 3. 依存インストール
-cd apps/web
-npm install
+# 3. 依存インストール（rootで実行）
+pnpm install
 
 # 4. 開発サーバー起動
-npm run dev
+pnpm dev
 ```
 
 ## 開発方法
 
 ```bash
 # 開発サーバー起動（http://localhost:3000）
-npm run dev
+pnpm dev
 
 # プロダクションビルド
-npm run build
+pnpm build
 
 # リントチェック
-npm run lint
+pnpm lint
+
+# 色直書きチェック
+pnpm check:colors
 ```
 
 ## テーマ切り替え
