@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 type Theme = 'simple' | 'cute' | 'cool';
 
@@ -14,6 +15,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('simple');
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
@@ -28,17 +30,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Set data-mode for overlay transparency
+  useEffect(() => {
+    if (pathname?.startsWith('/overlay')) {
+      document.documentElement.setAttribute('data-mode', 'overlay');
+    } else {
+      document.documentElement.removeAttribute('data-mode');
+    }
+  }, [pathname]);
+
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('wakuwork-theme', newTheme);
   };
 
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
+  // Always provide context, even during SSR
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
