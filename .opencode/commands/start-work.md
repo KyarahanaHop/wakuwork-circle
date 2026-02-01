@@ -58,7 +58,7 @@ Starting Work Session (WakuWork Circle)
 
 Plan Source: .sisyphus/drafts/plan.md
 Task: {task description}
-Constraints: 交換性禁止 / 治安UI強制 / チャット制限
+Constraints: 交換性禁止 / 治安UI強制 / チャット制限 / ルーム・セッション分離（参照: docs/ssot/core.md）
 
 Executing plan...
 ```

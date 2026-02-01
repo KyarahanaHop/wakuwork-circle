@@ -117,7 +117,7 @@ Create a plan following this format and save to `.sisyphus/drafts/plan.md`:
 2. **検証可能性**: 完了条件が明確で測定可能か（Yes/Noで言えるか）
 3. **完全性**: 必要なステップが漏れていないか
 4. **リスク**: 潜在的な問題点が考慮されているか
-5. **WakuWork制約**: 交換性禁止、治安UI強制、チャット制限が遵守されているか
+5. **WakuWork制約**: 交換性禁止、治安UI強制、チャット制限、ルーム/セッション分離が遵守されているか（参照: `docs/ssot/core.md`）
 
 **レビュー結果フォーマット**:
 
@@ -221,7 +221,7 @@ After saving, report:
 2. **Keep user in the loop** - Always present plan and ask for approval
 3. **Save with reviewed flag** - The `reviewed: true` flag is critical
 4. **Use concrete language** - Avoid vague terms like "検討する", "考慮する"
-5. **WakuWork constraints** - Always check 交換性禁止/治安UI強制/チャット制限
+5. **WakuWork constraints** - Always check 交換性禁止/治安UI強制/チャット制限/ルーム・セッション分離（参照: docs/ssot/core.md）
 6. **SSoT compliance** - Reference docs/ for design decisions
 
 ## NOTE
