@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * WakuWork Circle Theme System
+ * SSoT: docs/ui/themes.md
+ * 
+ * このファイルは docs/ui/themes.md から生成されます。
+ * 矛盾がある場合は themes.md を正とします。
+ */
+
+:root {
+  /* Base tokens - 形状・動き（テーマ共通） */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --shadow-1: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --dur-1: 150ms;
+  --dur-2: 200ms;
+  --dur-3: 300ms;
+}
+
+/* Simple Theme（デフォルト）- クリアでプロフェッショナル */
+[data-theme="simple"] {
+  --bg: #ffffff;
+  --surface: #f8f9fa;
+  --surface2: #e9ecef;
+  --text: #212529;
+  --muted: #6c757d;
+  --primary: #2563eb;
+  --primaryText: #ffffff;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --border: #dee2e6;
+  --ring: #3b82f6;
+}
+
+/* Cute Theme（パステル寄り）- 背景ほぼ白＋うっすらピンク */
+[data-theme="cute"] {
+  --bg: #fff8fb;
+  --surface: #fff0f5;
+  --surface2: #ffe4f0;
+  --text: #4a4a4a;
+  --muted: #9a9a9a;
+  --primary: #ff69b4;
+  --primaryText: #ffffff;
+  --success: #90ee90;
+  --warning: #ffd700;
+  --danger: #ff6b6b;
+  --border: #ffcce0;
+  --ring: #ff69b4;
+}
+
+/* Cool Theme（ダーク寄り）- 落ち着いた青系 */
+[data-theme="cool"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface2: #334155;
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --primary: #06b6d4;
+  --primaryText: #0f172a;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #f43f5e;
+  --border: #475569;
+  --ring: #06b6d4;
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color var(--dur-2), color var(--dur-2);
+}
+
+/* Utility classes for theme tokens */
+.bg-theme {
+  background-color: var(--bg);
+}
+
+.bg-surface {
+  background-color: var(--surface);
+}
+
+.bg-surface2 {
+  background-color: var(--surface2);
+}
+
+.text-theme {
+  color: var(--text);
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+.border-theme {
+  border-color: var(--border);
+}
+
+/* OBS Overlay transparency support */
+.obs-transparent {
+  background: transparent !important;
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Animation utilities */
+.transition-theme {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: var(--dur-2);
+}

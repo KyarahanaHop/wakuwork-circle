@@ -1,0 +1,22 @@
+#!/bin/sh
+# Pre-commit hook for WakuWork Circle
+
+echo "Running pre-commit checks..."
+
+# Check if web app files are staged
+if git diff --cached --name-only | grep -q "apps/web/"; then
+    echo "Checking apps/web..."
+    
+    # Run lint
+    cd apps/web
+    npm run lint
+    if [ $? -ne 0 ]; then
+        echo "Lint failed. Please fix the issues before committing."
+        exit 1
+    fi
+    
+    cd ../..
+fi
+
+echo "Pre-commit checks passed!"
+exit 0
