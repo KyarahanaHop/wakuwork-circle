@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useParams, useSearchParams } from 'next/navigation';
 
-// モックデータ
+// モックデータ（Phase 2でAPI取得に変更）
 const mockOverlayData = {
   participants: 12,
   completed: 8,
@@ -13,22 +14,30 @@ const mockOverlayData = {
 };
 
 export default function OverlayPage() {
+  const params = useParams();
+  const code = params.code as string;
+  
+  const searchParams = useSearchParams();
+  const isDebug = searchParams.get('debug') === '1';
+
   return (
     <main className="min-h-screen p-4">
-      {/* Minimal header with back link - overlay専用トークン使用 */}
-      <div className="mb-4">
-        <Link 
-          href="/"
-          className="text-sm px-3 py-1 rounded-md transition-colors inline-block"
-          style={{ 
-            background: 'var(--overlay-surface)', 
-            color: 'var(--overlay-text)',
-            borderRadius: 'var(--r-md)'
-          }}
-        >
-          ← 戻る
-        </Link>
-      </div>
+      {/* Debug Mode: Back link - only shown when ?debug=1 */}
+      {isDebug && (
+        <div className="mb-4">
+          <Link 
+            href="/"
+            className="text-sm px-3 py-1 rounded-md transition-colors inline-block"
+            style={{ 
+              background: 'var(--overlay-surface)', 
+              color: 'var(--overlay-text)',
+              borderRadius: 'var(--r-md)'
+            }}
+          >
+            ← 戻る
+          </Link>
+        </div>
+      )}
 
       {/* OBS Overlay Content - Transparent background */}
       <div className="space-y-3">
@@ -78,25 +87,27 @@ export default function OverlayPage() {
         </div>
       </div>
 
-      {/* Usage Note - 通常トークン使用（配信者向け説明なので） */}
-      <div 
-        className="mt-8 p-4" 
-        style={{ 
-          background: 'var(--surface)',
-          borderRadius: 'var(--r-md)'
-        }}
-      >
-        <h2 className="font-semibold mb-2">OBSでの使用方法</h2>
-        <ol 
-          className="list-decimal list-inside space-y-1 text-sm" 
-          style={{ color: 'var(--muted)' }}
+      {/* Debug Mode: Usage Note - only shown when ?debug=1 */}
+      {isDebug && (
+        <div 
+          className="mt-8 p-4" 
+          style={{ 
+            background: 'var(--surface)',
+            borderRadius: 'var(--r-md)'
+          }}
         >
-          <li>OBSで「ブラウザ」ソースを追加</li>
-          <li>URLに「http://localhost:3000/overlay」を入力</li>
-          <li>幅: 400px、高さ: 200px程度を推奨</li>
-          <li>背景透過を有効にする</li>
-        </ol>
-      </div>
+          <h2 className="font-semibold mb-2">OBSでの使用方法</h2>
+          <ol 
+            className="list-decimal list-inside space-y-1 text-sm" 
+            style={{ color: 'var(--muted)' }}
+          >
+            <li>OBSで「ブラウザ」ソースを追加</li>
+            <li>URLに「{`http://localhost:3000/overlay/${code}`}」を入力</li>
+            <li>幅: 400px、高さ: 200px程度を推奨</li>
+            <li>背景透過を有効にする</li>
+          </ol>
+        </div>
+      )}
     </main>
   );
 }

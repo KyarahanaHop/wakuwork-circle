@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
-// モックデータ
+// モックデータ（Phase 2でAPI取得に変更）
 const mockRoomData = {
   id: 'room-001',
   streamerName: 'サンプル配信者',
@@ -26,6 +27,9 @@ const mockRoomData = {
 };
 
 export default function RoomPage() {
+  const params = useParams();
+  const code = params.code as string;
+  
   const [isCompleted, setIsCompleted] = useState(false);
 
   return (
@@ -38,9 +42,12 @@ export default function RoomPage() {
             className="text-sm px-3 py-1 rounded-md transition-colors"
             style={{ background: 'var(--surface2)', color: 'var(--text)' }}
           >
-            ← 戻る
+            ← 退出
           </Link>
           <h1 className="text-lg font-semibold">{mockRoomData.streamerName}の部屋</h1>
+          <span className="text-xs font-mono" style={{ color: 'var(--muted)' }}>
+            {code}
+          </span>
         </div>
         <ThemeSwitcher />
       </header>

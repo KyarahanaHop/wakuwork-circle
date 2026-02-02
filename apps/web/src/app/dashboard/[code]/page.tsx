@@ -1,9 +1,10 @@
 'use client';
 
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
-// モックデータ
+// モックデータ（Phase 2でAPI取得に変更）
 const mockDashboardData = {
   roomId: 'room-001',
   streamerName: 'サンプル配信者',
@@ -18,9 +19,13 @@ const mockDashboardData = {
     { name: 'ユーザーC', amount: 300, time: '14:20' },
   ],
   reports: [],
+  // 承認ロビー（Phase 2でAPI取得）
+  lobbyQueue: [],
 };
 
 export default function DashboardPage() {
+  const params = useParams();
+  const code = params.code as string;
   return (
     <main className="min-h-screen p-4 md:p-6">
       {/* Header */}
@@ -34,11 +39,30 @@ export default function DashboardPage() {
             ← 戻る
           </Link>
           <h1 className="text-lg font-semibold">Dashboard（配信者）</h1>
+          <span className="text-xs font-mono" style={{ color: 'var(--muted)' }}>
+            {code}
+          </span>
         </div>
         <ThemeSwitcher />
       </header>
 
       <div className="max-w-4xl mx-auto space-y-4">
+        {/* 承認ロビー */}
+        <div className="p-4 rounded-lg" style={{ background: 'var(--surface)' }}>
+          <h2 className="text-sm font-medium mb-3" style={{ color: 'var(--muted)' }}>
+            承認ロビー ({mockDashboardData.lobbyQueue.length}人待ち)
+          </h2>
+          {mockDashboardData.lobbyQueue.length === 0 ? (
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>
+              現在承認待ちのユーザーはいません
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {/* Phase 2でAPI連携 */}
+            </div>
+          )}
+        </div>
+
         {/* Room Status */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 rounded-lg" style={{ background: 'var(--surface)' }}>
