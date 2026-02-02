@@ -1,25 +1,23 @@
 #!/bin/sh
 # Pre-commit hook for WakuWork Circle
+# Note: Always runs checks on all files (not just staged)
 
 echo "Running pre-commit checks..."
 
-# Check if web app files are staged
-if git diff --cached --name-only | grep -q "apps/web/"; then
-    echo "Checking apps/web..."
-    
-    # Run color check
-    pnpm check:colors
-    if [ $? -ne 0 ]; then
-        echo "Color check failed. Please fix color literals before committing."
-        exit 1
-    fi
-    
-    # Run lint
-    pnpm lint
-    if [ $? -ne 0 ]; then
-        echo "Lint failed. Please fix the issues before committing."
-        exit 1
-    fi
+# Run color check (always)
+echo "Running color check..."
+pnpm check:colors
+if [ $? -ne 0 ]; then
+    echo "Color check failed. Please fix color literals before committing."
+    exit 1
+fi
+
+# Run lint (always)
+echo "Running lint..."
+pnpm lint
+if [ $? -ne 0 ]; then
+    echo "Lint failed. Please fix the issues before committing."
+    exit 1
 fi
 
 echo "Pre-commit checks passed!"
