@@ -53,16 +53,16 @@
   --danger: #ff6b6b;
   --border: #ffcce0;
   --ring: #ff69b4;
-  
+
   /* Shape - 丸く・ふわっと */
   --r-sm: 10px;
   --r-md: 16px;
   --r-lg: 24px;
-  
+
   /* Shadow - 柔らかく */
   --shadow-1: 0 2px 8px rgba(255, 105, 180, 0.1);
   --shadow-2: 0 4px 16px rgba(255, 105, 180, 0.15);
-  
+
   /* Motion - やわらかく */
   --dur-1: 120ms;
   --dur-2: 180ms;
@@ -137,7 +137,9 @@ html {
 body {
   background-color: var(--bg);
   color: var(--text);
-  transition: background-color var(--dur-2), color var(--dur-2);
+  transition:
+    background-color var(--dur-2),
+    color var(--dur-2);
 }
 
 /* Utility classes for theme tokens */
@@ -189,4 +191,24 @@ body {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: var(--dur-2);
+}
+
+/* Stamp float animation */
+@keyframes stampFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.8);
+  }
 }

@@ -1,0 +1,278 @@
+// Prisma Schema for WakuWork Circle
+// Based on docs/ssot/domain-model.md
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+enum DisplayNameMode {
+  nickname  // User-set nickname
+  animal    // Generated animal name (session-scoped)
+  anonymous // Participant #N
+}
+
+enum SessionState {
+  working
+  break
+  ended
+}
+
+enum JoinRequestStatus {
+  pending
+  approved
+  rejected
+}
+
+enum PresenceEventType {
+  enter
+  leave
+}
+
+enum ModerationActionType {
+  kick
+  mute
+  ban
+}
+
+enum ReportCategory {
+  troll
+  spam
+  harassment
+  underage
+}
+
+enum ReportStatus {
+  pending
+  reviewed
+  resolved
+}
+
+// =============================================================================
+// Models
+// =============================================================================
+
+/// User - OAuth authenticated users (Discord only for MVP)
+model User {
+  id          String   @id @default(cuid())
+  discordId   String   @unique
+  discordName String
+  nickname    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  rooms              Room[]
+  sessionMembers     SessionMember[]
+  joinRequests       JoinRequest[]
+  presenceEvents     PresenceEvent[]
+  supportEvents      SupportEvent[]
+  stampEvents        StampEvent[]
+  moderationActions  ModerationAction[] @relation("ModerationActor")
+  moderationTargets  ModerationAction[] @relation("ModerationTarget")
+  reportsSubmitted   Report[]           @relation("ReportReporter")
+  reportsReceived    Report[]           @relation("ReportTarget")
+  pinnedMessages     PinnedMessage[]    @relation("MessageAuthor")
+  pinnedBy           PinnedMessage[]    @relation("MessagePinner")
+
+  @@index([discordId])
+}
+
+/// Room - A streamer's persistent room container
+model Room {
+  id              String          @id @default(cuid())
+  ownerId         String
+  name            String
+  displayNameMode DisplayNameMode @default(nickname)
+  approvalRequired Boolean        @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  owner             User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  sessions          Session[]
+  moderationActions ModerationAction[]
+  reports           Report[]
+
+  @@index([ownerId])
+}
+
+/// Session - A single streaming session within a room
+model Session {
+  id                 String       @id @default(cuid())
+  roomId             String
+  code               String       @unique // Auto-generated session code (6-8 alphanumeric)
+  passphrase         String       @default("") // Streamer-set passphrase
+  passphraseRequired Boolean      @default(true) // SSoT: Session-level passphrase ON/OFF
+  state              SessionState @default(working)
+  declaration        String?      // Streamer's session declaration
+  startedAt          DateTime     @default(now())
+  endedAt            DateTime?
+
+  // Relations
+  room            Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  members         SessionMember[]
+  joinRequests    JoinRequest[]
+  presenceEvents  PresenceEvent[]
+  supportEvents   SupportEvent[]
+  stampEvents     StampEvent[]
+  moderationActions ModerationAction[]
+  reports         Report[]
+  pinnedMessages  PinnedMessage[]
+
+  @@index([code])
+  @@index([roomId, state])
+}
+
+/// JoinRequest - Pending/approved/rejected join requests to a session
+model JoinRequest {
+  id           String            @id @default(cuid())
+  sessionId    String
+  userId       String
+  status       JoinRequestStatus @default(pending)
+  isFirstVisit Boolean           @default(true)
+  requestedAt  DateTime          @default(now())
+  resolvedAt   DateTime?
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@index([sessionId, status])
+}
+
+/// SessionMember - Approved participants in a session
+model SessionMember {
+  id           String   @id @default(cuid())
+  sessionId    String
+  userId       String
+  displayName  String   // Generated based on room's displayNameMode
+  category     String?  // Work category
+  shortText    String?  // Short status text
+  isCompleted  Boolean  @default(false)
+  isMuted      Boolean  @default(false)
+  muteExpiresAt DateTime?
+  joinedAt     DateTime @default(now())
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+}
+
+/// PresenceEvent - Enter/leave log for audit and analysis
+model PresenceEvent {
+  id        String            @id @default(cuid())
+  sessionId String
+  userId    String
+  type      PresenceEventType
+  createdAt DateTime          @default(now())
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+/// SupportEvent - Cheering/donation events (stub amounts for MVP)
+model SupportEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  amount    Int      // MVP: stub values 300/500/1000/3000
+  message   String?  @db.VarChar(30) // Max 30 chars, no newlines
+  createdAt DateTime @default(now())
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+/// ModerationAction - Kick/mute/ban actions by streamers
+model ModerationAction {
+  id           String               @id @default(cuid())
+  roomId       String
+  sessionId    String?
+  targetUserId String
+  actorId      String
+  action       ModerationActionType
+  reason       String?
+  reasonCategory String?            // troll/spam/harassment/underage
+  duration     Int?                 // Duration in minutes, null = permanent
+  createdAt    DateTime             @default(now())
+
+  // Relations
+  room    Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  session Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  target  User     @relation("ModerationTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  actor   User     @relation("ModerationActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, targetUserId])
+}
+
+/// Report - User reports for moderation review (30-day retention)
+model Report {
+  id           String         @id @default(cuid())
+  roomId       String
+  sessionId    String?
+  reporterId   String
+  targetUserId String
+  category     ReportCategory
+  description  String?
+  status       ReportStatus   @default(pending)
+  createdAt    DateTime       @default(now())
+
+  // Relations
+  room     Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  session  Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  reporter User     @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  target   User     @relation("ReportTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, targetUserId])
+}
+
+/// PinnedMessage - Streamer-pinned chat messages (persistent)
+model PinnedMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  content   String
+  pinnedById String
+  pinnedAt  DateTime @default(now())
+
+  // Relations
+  session  Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  author   User    @relation("MessageAuthor", fields: [userId], references: [id], onDelete: Cascade)
+  pinnedBy User    @relation("MessagePinner", fields: [pinnedById], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+/// StampEvent - Temporary stamp reactions (short-lived, for real-time display)
+model StampEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  stampType String   // wave, like, alert, sleepy
+  createdAt DateTime @default(now())
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}

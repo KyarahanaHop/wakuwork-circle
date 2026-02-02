@@ -1,5 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { mockState } from '@/lib/mockState';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { ensureUser } from "@/lib/user-sync";
+import {
+  getSessionInfo,
+  getUserApprovalStatus,
+  getSessionParticipants,
+  getMemberStatus,
+} from "@/lib/services/session";
+import { prisma } from "@/lib/prisma";
 
 interface RouteParams {
   params: {
@@ -9,48 +17,103 @@ interface RouteParams {
 
 /**
  * GET /api/session/[code]
- * セッション情報を取得（機密情報を除外）
+ * セッション情報を取得（認証状態で返す情報が変わる）
  */
-export async function GET(
-  request: NextRequest,
-  { params }: RouteParams
-) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { code } = params;
 
-    const session = mockState.getSession(code);
-    if (!session) {
+    // Get session info
+    const info = await getSessionInfo(code);
+    if (!info) {
       return NextResponse.json(
-        { error: 'セッションが見つかりません' },
-        { status: 404 }
+        { error: "セッションが見つかりません" },
+        { status: 404 },
       );
     }
 
-    // ユーザーの承認状態を取得（クエリパラメータからuserIdを取得）
-    const userId = request.nextUrl.searchParams.get('userId');
-    let userApprovalStatus: string | undefined;
-    if (userId) {
-      userApprovalStatus = mockState.getUserApprovalStatus(code, userId);
+    // Check authentication for user-specific data
+    const session = await auth();
+    let userApprovalStatus: string | null = null;
+    let userId: string | null = null;
+
+    if (session?.user) {
+      userId = await ensureUser(session);
+      const status = await getUserApprovalStatus(code, userId);
+      userApprovalStatus = status;
     }
 
-    // 機密情報を除外してレスポンス
-    return NextResponse.json({
-      code: session.code,
-      passphraseRequired: session.passphraseRequired,
-      status: session.status,
-      streamerName: session.streamerName,
-      declaration: session.declaration,
-      participantCount: session.participants.size,
-      pendingCount: session.pendingApprovals.size,
-      startedAt: session.startedAt.toISOString(),
-      // ユーザー固有の承認状態
-      userApprovalStatus,
-    });
+    // Base response (public info)
+    const response: Record<string, unknown> = {
+      code: info.code,
+      passphraseRequired: info.passphraseRequired,
+      status: info.status,
+      streamerName: info.streamerName,
+      declaration: info.declaration,
+      participantCount: info.participantCount,
+      pendingCount: info.pendingCount,
+      startedAt: info.startedAt,
+      displayNameMode: info.displayNameMode,
+      roomName: info.roomName,
+    };
+
+    // Add user-specific data if authenticated
+    if (userId) {
+      response.userApprovalStatus = userApprovalStatus;
+    }
+
+    // If user is a member, add support events (time-ordered, latest 10)
+    if (userApprovalStatus === "member" || userApprovalStatus === "approved") {
+      const sessionRecord = await prisma.session.findUnique({
+        where: { code: code.toUpperCase() },
+      });
+
+      if (sessionRecord) {
+        // Get support events - TIME-ORDERED ONLY (D-010: no sorting by amount)
+        const supportEvents = await prisma.supportEvent.findMany({
+          where: { sessionId: sessionRecord.id },
+          orderBy: { createdAt: "desc" }, // Time-ordered only
+          take: 10, // Latest 10 only
+          include: {
+            user: true,
+          },
+        });
+
+        // Get participants for display name lookup
+        const participants = await getSessionParticipants(code);
+        const participantMap = new Map(participants.map((p) => [p.id, p.name]));
+
+        response.supportEvents = supportEvents.map((e) => ({
+          id: e.id,
+          displayName: participantMap.get(e.userId) || "Unknown",
+          amount: e.amount,
+          message: e.message,
+          createdAt: e.createdAt.toISOString(),
+        }));
+
+        // NOTE: No totals, rankings, or sorted views (D-010 anti-pressure rules)
+      }
+
+      // Add user's current member status
+      if (userId) {
+        const memberStatus = await getMemberStatus(code, userId);
+        if (memberStatus) {
+          response.myStatus = {
+            category: memberStatus.category,
+            shortText: memberStatus.shortText,
+            isCompleted: memberStatus.isCompleted,
+            displayName: memberStatus.displayName,
+          };
+        }
+      }
+    }
+
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('GET /api/session/[code] error:', error);
+    console.error("GET /api/session/[code] error:", error);
     return NextResponse.json(
-      { error: 'サーバーエラーが発生しました' },
-      { status: 500 }
+      { error: "サーバーエラーが発生しました" },
+      { status: 500 },
     );
   }
 }

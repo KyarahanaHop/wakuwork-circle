@@ -1,72 +1,101 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { mockState } from '@/lib/mockState';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { ensureUser } from "@/lib/user-sync";
+import { processJoinRequest, getSessionInfo } from "@/lib/services/session";
 
 /**
  * POST /api/join
  * セッションへの参加リクエスト
+ *
+ * Required: Discord OAuth authentication
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "ログインが必要です" },
+        { status: 401 },
+      );
+    }
+
     const body = await request.json();
-    const { code, passphrase, userId, userName } = body;
+    const { code, passphrase } = body;
 
-    // バリデーション
-    if (!code || typeof code !== 'string') {
+    // Validate input
+    if (!code || typeof code !== "string") {
       return NextResponse.json(
-        { error: 'セッションコードが必要です' },
-        { status: 400 }
+        { error: "セッションコードが必要です" },
+        { status: 400 },
       );
     }
 
-    // セッション検索
-    const session = mockState.getSession(code);
-    if (!session) {
-      return NextResponse.json(
-        { error: 'セッションが見つかりません' },
-        { status: 404 }
-      );
-    }
+    // Ensure user exists in database
+    const userId = await ensureUser(session);
 
-    // 合言葉検証（必須の場合のみ）
-    if (session.passphraseRequired) {
-      if (!passphrase || passphrase !== session.passphrase) {
-        return NextResponse.json(
-          { error: '合言葉が違います' },
-          { status: 403 }
-        );
-      }
-    }
-
-    // ユーザーIDを生成（実際はOAuth認証から取得）
-    const finalUserId = userId || `user_${Date.now()}`;
-    const finalUserName = userName || `ユーザー${Math.floor(Math.random() * 1000)}`;
-
-    // pendingに追加（既に参加済みならapproved維持）
-    const result = mockState.addPendingUser(code, {
-      id: finalUserId,
-      name: finalUserName,
-    });
+    // Process join request
+    const result = await processJoinRequest(code, userId, passphrase);
 
     if (!result.success) {
       return NextResponse.json(
-        { error: '参加リクエストの追加に失敗しました' },
-        { status: 500 }
+        { error: result.error },
+        { status: result.error === "セッションが見つかりません" ? 404 : 403 },
       );
     }
 
     return NextResponse.json({
       success: true,
-      userId: finalUserId,
-      userName: finalUserName,
-      requiresApproval: !result.alreadyApproved, // 既に承認済みなら承認不要
+      userId,
+      userName: session.user.discordName,
+      requiresApproval: result.requiresApproval,
       alreadyApproved: result.alreadyApproved,
-      sessionCode: session.code,
+      sessionCode: result.sessionCode,
     });
   } catch (error) {
-    console.error('POST /api/join error:', error);
+    console.error("POST /api/join error:", error);
     return NextResponse.json(
-      { error: 'サーバーエラーが発生しました' },
-      { status: 500 }
+      { error: "サーバーエラーが発生しました" },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * GET /api/join?code=XXX
+ * Check if session exists and get basic info (no auth required)
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const code = request.nextUrl.searchParams.get("code");
+
+    if (!code) {
+      return NextResponse.json(
+        { error: "セッションコードが必要です" },
+        { status: 400 },
+      );
+    }
+
+    const info = await getSessionInfo(code);
+    if (!info) {
+      return NextResponse.json(
+        { error: "セッションが見つかりません" },
+        { status: 404 },
+      );
+    }
+
+    // Return basic info (no sensitive data)
+    return NextResponse.json({
+      code: info.code,
+      passphraseRequired: info.passphraseRequired,
+      streamerName: info.streamerName,
+      status: info.status,
+    });
+  } catch (error) {
+    console.error("GET /api/join error:", error);
+    return NextResponse.json(
+      { error: "サーバーエラーが発生しました" },
+      { status: 500 },
     );
   }
 }
