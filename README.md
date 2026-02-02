@@ -2,6 +2,10 @@
 
 配信者が作業セッション部屋を立て、視聴者が入室して同席作業＋応援できるWebサービス。
 
+> **正本ブランチ**: `main`  
+> **SSoT（Single Source of Truth）**: `docs/ssot/` 配下。仕様の最終権威は `docs/ssot/core.md`。  
+> **意思決定ログ**: `docs/ssot/decisions.md`（D-xxx / A-xxx）
+
 ## コンセプト
 
 - **同席作業**: 配信者と視聴者が一緒に作業する空間

@@ -43,6 +43,21 @@
 - **視聴者ログイン**: **必須**（匿名参加不可）
 - **配信者ログイン**: 必須
 
+> **⚠️ 現状の実装ギャップ（2026-02-02時点）**
+> 
+> 現在の実装は **UI確認モード**（localStorage仮ID）であり、OAuth未実装。
+> 
+> | 項目 | SSoT仕様 | 現状実装 |
+> |------|----------|----------|
+> | 認証方式 | Discord OAuth必須 | localStorage仮ID |
+> | ユーザー識別 | OAuth ID | `user_${random}` |
+> | セッション管理 | サーバーサイド | クライアント側mockState |
+> 
+> **次タスク**: `TASK-001: Discord OAuth実装`
+> - NextAuth.js + Discord Provider
+> - サーバーサイドセッション管理
+> - mockState → DB/API 置き換え
+
 ### 3.2 閲覧専用ゲスト（D-004）
 
 | 項目 | 仕様 |
