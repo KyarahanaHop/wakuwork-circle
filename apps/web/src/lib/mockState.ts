@@ -63,8 +63,10 @@ function getGlobalState() {
       sessions: new Map(),
       userApprovals: new Map(),
     };
-    // 開発用の初期セッションを作成
-    initializeDevSessions();
+    // 開発用の初期セッションを作成（開発環境のみ）
+    if (process.env.NODE_ENV === 'development') {
+      initializeDevSessions();
+    }
   }
   return globalThis.__mockState;
 }
@@ -146,27 +148,46 @@ export const mockState = {
 
   /**
    * 参加リクエストを追加（pending状態へ）
+   * - 既にparticipants（承認済み）の場合はpendingにせずapproved維持
+   * - 既にpending中の場合は更新しない
    */
-  addPendingUser(code: string, user: { id: string; name: string }): boolean {
+  addPendingUser(code: string, user: { id: string; name: string }): { success: boolean; alreadyApproved: boolean } {
     const session = this.getSession(code);
-    if (!session) return false;
+    if (!session) return { success: false, alreadyApproved: false };
+
+    const normalizedCode = session.code; // 正規化済み（getSessionで大文字化）
+
+    // 既に参加済み（approved）なら、pendingに戻さずapproved維持
+    if (session.participants.has(user.id)) {
+      const key = `${normalizedCode}:${user.id}`;
+      getGlobalState().userApprovals.set(key, {
+        sessionCode: normalizedCode,
+        status: 'approved',
+      });
+      return { success: true, alreadyApproved: true };
+    }
+
+    // 既にpending中なら何もしない
+    if (session.pendingApprovals.has(user.id)) {
+      return { success: true, alreadyApproved: false };
+    }
 
     const pendingUser: PendingUser = {
       id: user.id,
       name: user.name,
       requestedAt: new Date(),
-      isFirstTime: !session.participants.has(user.id),
+      isFirstTime: true,
     };
     session.pendingApprovals.set(user.id, pendingUser);
     
-    // ユーザーの承認状態を記録
-    const key = `${code}:${user.id}`;
+    // ユーザーの承認状態を記録（正規化済みキー）
+    const key = `${normalizedCode}:${user.id}`;
     getGlobalState().userApprovals.set(key, {
-      sessionCode: code,
+      sessionCode: normalizedCode,
       status: 'pending',
     });
     
-    return true;
+    return { success: true, alreadyApproved: false };
   },
 
   /**
@@ -184,6 +205,7 @@ export const mockState = {
     const session = this.getSession(code);
     if (!session) return false;
 
+    const normalizedCode = session.code; // 正規化済み
     const pending = session.pendingApprovals.get(userId);
     if (!pending) return false;
 
@@ -201,10 +223,10 @@ export const mockState = {
     };
     session.participants.set(userId, participant);
 
-    // 承認状態を更新
-    const key = `${code}:${userId}`;
+    // 承認状態を更新（正規化済みキー）
+    const key = `${normalizedCode}:${userId}`;
     getGlobalState().userApprovals.set(key, {
-      sessionCode: code,
+      sessionCode: normalizedCode,
       status: 'approved',
     });
 
@@ -218,16 +240,17 @@ export const mockState = {
     const session = this.getSession(code);
     if (!session) return false;
 
+    const normalizedCode = session.code; // 正規化済み
     const pending = session.pendingApprovals.get(userId);
     if (!pending) return false;
 
     // pendingから削除
     session.pendingApprovals.delete(userId);
 
-    // 拒否状態を記録
-    const key = `${code}:${userId}`;
+    // 拒否状態を記録（正規化済みキー）
+    const key = `${normalizedCode}:${userId}`;
     getGlobalState().userApprovals.set(key, {
-      sessionCode: code,
+      sessionCode: normalizedCode,
       status: 'rejected',
     });
 

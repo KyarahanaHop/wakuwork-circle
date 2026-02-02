@@ -53,9 +53,15 @@ export default function PassphrasePage() {
         return
       }
 
-      // 成功時: userIdを保存してlobbyへ遷移
+      // 成功時: userIdを保存
       localStorage.setItem('wakuwork_user_id', data.userId)
-      router.push(`/lobby/${code}`)
+      
+      // 既に承認済みならRoomへ直接遷移、そうでなければLobbyへ
+      if (data.alreadyApproved) {
+        router.push(`/room/${code}`)
+      } else {
+        router.push(`/lobby/${code}`)
+      }
     } catch {
       setError('通信エラーが発生しました')
     } finally {

@@ -28,11 +28,18 @@ interface SessionInfo {
   pendingCount: number;
 }
 
-// モックデータ（応援者は後で実装）
+// SSoT準拠: 応援者一覧（時系列順・最新10件・金額表示あり・ランキング/合計なし）
 const mockSupporters = [
-  { name: 'ユーザーA', amount: 1000, time: '14:30' },
-  { name: 'ユーザーB', amount: 500, time: '14:25' },
-  { name: 'ユーザーC', amount: 300, time: '14:20' },
+  { id: 's1', displayName: '参加者#3', amount: 500, time: '15:45', message: '頑張って！' },
+  { id: 's2', displayName: '参加者#7', amount: 1000, time: '15:30', message: '' },
+  { id: 's3', displayName: '参加者#1', amount: 300, time: '15:15', message: '応援してます' },
+  { id: 's4', displayName: '参加者#5', amount: 3000, time: '15:00', message: 'ファイト！' },
+  { id: 's5', displayName: '参加者#2', amount: 500, time: '14:45', message: '' },
+  { id: 's6', displayName: '参加者#9', amount: 300, time: '14:30', message: '同時作業中' },
+  { id: 's7', displayName: '参加者#4', amount: 1000, time: '14:15', message: '' },
+  { id: 's8', displayName: '参加者#6', amount: 500, time: '14:00', message: 'いつも見てます' },
+  { id: 's9', displayName: '参加者#8', amount: 300, time: '13:45', message: '' },
+  { id: 's10', displayName: '参加者#10', amount: 500, time: '13:30', message: '' },
 ];
 
 export default function DashboardPage() {
@@ -288,30 +295,40 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Supporters List */}
+        {/* Supporters List (SSoT準拠: 時系列順・最新10件・金額表示・ランキング/合計なし) */}
         <div className="p-4 rounded-lg" style={{ background: 'var(--surface)' }}>
           <h2 className="text-sm font-medium mb-3" style={{ color: 'var(--muted)' }}>
-            応援者一覧（モック）
+            応援履歴（最新10件・時系列順）
           </h2>
-          <div className="space-y-2">
-            {mockSupporters.map((supporter, i) => (
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {mockSupporters.map((supporter) => (
               <div 
-                key={i}
+                key={supporter.id}
                 className="flex justify-between items-center p-3 rounded-lg"
                 style={{ background: 'var(--surface2)' }}
               >
-                <span>{supporter.name}</span>
-                <div className="flex items-center gap-4">
-                  <span className="font-semibold" style={{ color: 'var(--primary)' }}>
-                    ¥{supporter.amount.toLocaleString()}
-                  </span>
-                  <span className="text-sm" style={{ color: 'var(--muted)' }}>
-                    {supporter.time}
-                  </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium truncate">{supporter.displayName}</span>
+                    <span className="font-semibold" style={{ color: 'var(--primary)' }}>
+                      ¥{supporter.amount.toLocaleString()}
+                    </span>
+                  </div>
+                  {supporter.message && (
+                    <p className="text-xs truncate" style={{ color: 'var(--muted)' }}>
+                      {supporter.message}
+                    </p>
+                  )}
                 </div>
+                <span className="text-sm ml-2 shrink-0" style={{ color: 'var(--muted)' }}>
+                  {supporter.time}
+                </span>
               </div>
             ))}
           </div>
+          <p className="text-xs mt-2" style={{ color: 'var(--muted)' }}>
+            ※時系列表示のみ（煽り防止のためランキング・合計表示なし）
+          </p>
         </div>
 
         {/* 更新情報 */}

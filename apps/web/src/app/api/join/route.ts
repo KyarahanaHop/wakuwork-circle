@@ -41,13 +41,13 @@ export async function POST(request: NextRequest) {
     const finalUserId = userId || `user_${Date.now()}`;
     const finalUserName = userName || `ユーザー${Math.floor(Math.random() * 1000)}`;
 
-    // pendingに追加
-    const success = mockState.addPendingUser(code, {
+    // pendingに追加（既に参加済みならapproved維持）
+    const result = mockState.addPendingUser(code, {
       id: finalUserId,
       name: finalUserName,
     });
 
-    if (!success) {
+    if (!result.success) {
       return NextResponse.json(
         { error: '参加リクエストの追加に失敗しました' },
         { status: 500 }
@@ -58,7 +58,8 @@ export async function POST(request: NextRequest) {
       success: true,
       userId: finalUserId,
       userName: finalUserName,
-      requiresApproval: true,
+      requiresApproval: !result.alreadyApproved, // 既に承認済みなら承認不要
+      alreadyApproved: result.alreadyApproved,
       sessionCode: session.code,
     });
   } catch (error) {
