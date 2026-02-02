@@ -16,6 +16,7 @@
 | ドメイン | 権威ファイル | 説明 |
 |----------|--------------|------|
 | **仕様全体** | `docs/ssot/core.md` | **最優先**。仕様衝突時はこれを正とする |
+| **意思決定ログ** | `docs/ssot/decisions.md` | **確定した意思決定（D-xxx, A-xxx）** |
 | ドメインモデル | `docs/ssot/domain-model.md` | エンティティ定義、関係 |
 | フロー | `docs/ssot/flows.md` | 参加フロー、状態遷移 |
 | 可視性 | `docs/ssot/identity-visibility.md` | 誰が誰を見れるか |
@@ -116,6 +117,7 @@
 | 知りたいこと | 参照先 |
 |--------------|--------|
 | 全体像を1枚で | `docs/ssot/core.md` |
+| 確定した意思決定 | `docs/ssot/decisions.md` |
 | エンティティ定義 | `docs/ssot/domain-model.md` |
 | 参加の流れ | `docs/ssot/flows.md` |
 | 匿名性ルール | `docs/ssot/identity-visibility.md` |
