@@ -37,6 +37,7 @@
 | `roomId` | UUID | FK → Room.id |
 | `code` | string | セッションコード（**自動生成**、英数字6-8桁） |
 | `passphrase` | string | 合言葉（**配信者が手動設定**） |
+| `passphraseRequired` | boolean | 合言葉必須フラグ（**デフォルト: true**）。配信者がON/OFF切替可能。 |
 | `state` | enum | `working` / `break` / `ended` |
 | `declaration` | string? | 配信者の宣言 |
 | `startedAt` | datetime | 開始日時 |
