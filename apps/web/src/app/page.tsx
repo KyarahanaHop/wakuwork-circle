@@ -8,12 +8,13 @@ export default function JoinPage() {
   const router = useRouter()
   const [sessionCode, setSessionCode] = useState('')
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const isValidCode = (code: string): boolean => {
     return /^[A-Za-z0-9]{6,8}$/.test(code)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -29,8 +30,28 @@ export default function JoinPage() {
       return
     }
 
-    // Navigate to join/[code] for passphrase check
-    router.push(`/join/${trimmedCode}`)
+    setIsLoading(true)
+
+    try {
+      // セッション存在確認
+      const res = await fetch(`/api/session/${trimmedCode}`)
+      
+      if (!res.ok) {
+        if (res.status === 404) {
+          setError('セッションが見つかりません')
+        } else {
+          setError('エラーが発生しました')
+        }
+        return
+      }
+
+      // セッションが存在する場合、合言葉画面へ遷移
+      router.push(`/join/${trimmedCode}`)
+    } catch {
+      setError('通信エラーが発生しました')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -79,13 +100,14 @@ export default function JoinPage() {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 rounded-lg font-semibold transition-all hover:opacity-90"
+              disabled={isLoading}
+              className="w-full py-3 px-4 rounded-lg font-semibold transition-all hover:opacity-90 disabled:opacity-50"
               style={{
                 background: 'var(--accent)',
                 color: 'white',
               }}
             >
-              参加する
+              {isLoading ? '確認中...' : '参加する'}
             </button>
           </form>
 
