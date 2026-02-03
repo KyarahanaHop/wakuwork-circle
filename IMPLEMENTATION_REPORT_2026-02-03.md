@@ -23,12 +23,12 @@ WakuWork Circle の MVP 実装として、TASK-001 から TASK-004 までを完�
 ## 2. コミット履歴（時系列）
 
 ```
-5c2d5fb docs: finalize audit report with verification logs          ← 現在のHEAD
+3473627 docs: fix report factual accuracy (commit history, status enum, section 13)  ← ZIP生成時点HEAD
+5c2d5fb docs: finalize audit report with verification logs
 b7f10ce fix: audit alignment - approve owner check, CI env, report sync
 a87fdc8 docs: add implementation report for audit (2026-02-03)
 0f02231 fix: P0/P1 fixes (check:colors, SSoT alignment, guest access)
 3100431 feat: implement TASK-001 to TASK-004 (Discord OAuth, Room/Session, Member Status, Stamps)
-24b2d71 docs(ssot): address review iteration 2
 ...
 8ded5ab feat: initial commit with project structure
 ```
