@@ -77,12 +77,14 @@ export async function GET(request: NextRequest) {
     });
 
     // Calculate elapsed time
+    // If session has ended, use endedAt for fixed elapsed time
     const now = new Date();
     const startedAt = session.startedAt;
-    const elapsedMs = now.getTime() - startedAt.getTime();
+    const endTime = session.endedAt ?? now;
+    const elapsedMs = endTime.getTime() - startedAt.getTime();
     const elapsedSec = Math.floor(elapsedMs / 1000);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       code: session.code,
       state: session.state,
       startedAt: startedAt.toISOString(),
@@ -99,6 +101,11 @@ export async function GET(request: NextRequest) {
           }
         : null,
     });
+
+    // D-012: Cache-Control: no-store for real-time data
+    response.headers.set("Cache-Control", "no-store");
+
+    return response;
   } catch (error) {
     console.error("GET /api/overlay error:", error);
     return NextResponse.json(
