@@ -531,10 +531,10 @@ export default function DashboardPage() {
                   style={{
                     background:
                       updateMessage.type === "success"
-                        ? "rgba(34, 197, 94, 0.1)"
+                        ? "var(--success-soft)"
                         : updateMessage.type === "warning"
-                          ? "rgba(234, 179, 8, 0.1)"
-                          : "rgba(239, 68, 68, 0.1)",
+                          ? "var(--warning-soft)"
+                          : "var(--danger-soft)",
                     color:
                       updateMessage.type === "success"
                         ? "var(--success)"
@@ -596,7 +596,7 @@ export default function DashboardPage() {
                 <div
                   className="p-3 rounded-lg border-2"
                   style={{
-                    background: "rgba(239, 68, 68, 0.1)",
+                    background: "var(--danger-soft)",
                     borderColor: "var(--danger)",
                     color: "var(--danger)",
                   }}

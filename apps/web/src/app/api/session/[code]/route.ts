@@ -17,11 +17,17 @@ interface RouteParams {
 
 /**
  * GET /api/session/[code]
- * セッション情報を取得（認証状態で返す情報が変わる）
+ * セッション情報を取得
+ *
+ * D-004: 閲覧専用ゲストなし - 全員OAuth必須
+ * 認証必須。未認証ユーザーには最小限の情報のみ返す（セッション存在確認 + passphrase要否）
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { code } = params;
+
+    // Check authentication first (D-004: 全員OAuth必須)
+    const session = await auth();
 
     // Get session info
     const info = await getSessionInfo(code);
@@ -32,18 +38,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Check authentication for user-specific data
-    const session = await auth();
-    let userApprovalStatus: string | null = null;
-    let userId: string | null = null;
-
-    if (session?.user) {
-      userId = await ensureUser(session);
-      const status = await getUserApprovalStatus(code, userId);
-      userApprovalStatus = status;
+    // For unauthenticated users, return minimal info only
+    // This allows the join flow to work (show passphrase input if needed)
+    // but prevents content guessing/scraping (D-004: 外部閲覧提供しない)
+    if (!session?.user) {
+      return NextResponse.json({
+        code: info.code,
+        passphraseRequired: info.passphraseRequired,
+        status: info.status,
+        // No streamer name, room name, declaration, participant count, etc.
+        // User must authenticate to see room content
+      });
     }
 
-    // Base response (public info)
+    const userId = await ensureUser(session);
+    const userApprovalStatus = await getUserApprovalStatus(code, userId);
+
+    // Full response for authenticated users
     const response: Record<string, unknown> = {
       code: info.code,
       passphraseRequired: info.passphraseRequired,
@@ -57,10 +68,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       roomName: info.roomName,
     };
 
-    // Add user-specific data if authenticated
-    if (userId) {
-      response.userApprovalStatus = userApprovalStatus;
-    }
+    // Add user-specific data
+    response.userApprovalStatus = userApprovalStatus;
 
     // If user is a member, add support events (time-ordered, latest 10)
     if (userApprovalStatus === "member" || userApprovalStatus === "approved") {
@@ -95,16 +104,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
 
       // Add user's current member status
-      if (userId) {
-        const memberStatus = await getMemberStatus(code, userId);
-        if (memberStatus) {
-          response.myStatus = {
-            category: memberStatus.category,
-            shortText: memberStatus.shortText,
-            isCompleted: memberStatus.isCompleted,
-            displayName: memberStatus.displayName,
-          };
-        }
+      const memberStatus = await getMemberStatus(code, userId);
+      if (memberStatus) {
+        response.myStatus = {
+          category: memberStatus.category,
+          shortText: memberStatus.shortText,
+          isCompleted: memberStatus.isCompleted,
+          displayName: memberStatus.displayName,
+        };
       }
     }
 

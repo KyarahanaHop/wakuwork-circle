@@ -679,7 +679,7 @@ export default function RoomPage() {
                     className="animate-bounce px-2 py-1 rounded-full text-sm flex items-center gap-1"
                     style={{
                       background: "var(--surface2)",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                      boxShadow: "var(--shadow-float)",
                       animation: "stampFloat 5s ease-out forwards",
                     }}
                   >

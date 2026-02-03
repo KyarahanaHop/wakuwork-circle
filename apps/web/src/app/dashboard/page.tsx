@@ -254,7 +254,7 @@ export default function DashboardIndexPage() {
           <div
             className="p-4 rounded-lg mb-4 border-2"
             style={{
-              background: "rgba(239, 68, 68, 0.1)",
+              background: "var(--danger-soft)",
               borderColor: "var(--danger)",
               color: "var(--danger)",
             }}
@@ -403,7 +403,7 @@ export default function DashboardIndexPage() {
                   <div
                     className="p-3 rounded-lg mt-2 border-2"
                     style={{
-                      background: "rgba(239, 68, 68, 0.1)",
+                      background: "var(--danger-soft)",
                       borderColor: "var(--danger)",
                       color: "var(--danger)",
                     }}

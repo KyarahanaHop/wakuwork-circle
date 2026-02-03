@@ -36,6 +36,16 @@
   --danger: #ef4444;
   --border: #dee2e6;
   --ring: #3b82f6;
+
+  /* Soft backgrounds for alerts/messages */
+  --success-soft: rgba(34, 197, 94, 0.1);
+  --warning-soft: rgba(234, 179, 8, 0.1);
+  --danger-soft: rgba(239, 68, 68, 0.1);
+
+  /* Shadow for floating elements */
+  --shadow-1: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-float: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Cute Theme（パステル寄り）- 背景ほぼ白＋うっすらピンク */
@@ -53,6 +63,12 @@
   --danger: #ff6b6b;
   --border: #ffcce0;
   --ring: #ff69b4;
+
+  /* Soft backgrounds for alerts/messages */
+  --success-soft: rgba(144, 238, 144, 0.2);
+  --warning-soft: rgba(255, 215, 0, 0.2);
+  --danger-soft: rgba(255, 107, 107, 0.15);
+  --shadow-float: 0 2px 8px rgba(255, 105, 180, 0.2);
 
   /* Shape - 丸く・ふわっと */
   --r-sm: 10px;
@@ -84,6 +100,12 @@
   --danger: #f43f5e;
   --border: #475569;
   --ring: #06b6d4;
+
+  /* Soft backgrounds for alerts/messages */
+  --success-soft: rgba(16, 185, 129, 0.15);
+  --warning-soft: rgba(245, 158, 11, 0.15);
+  --danger-soft: rgba(244, 63, 94, 0.15);
+  --shadow-float: 0 2px 8px rgba(0, 0, 0, 0.4);
 
   /* Shape - シャープに */
   --r-sm: 4px;
