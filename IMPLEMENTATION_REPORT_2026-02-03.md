@@ -22,8 +22,11 @@ WakuWork Circle の MVP 実装として、TASK-001 から TASK-004 までを完�
 
 ## 2. コミット履歴（時系列）
 
+本レポートは複数回の監査修正を経て更新されています。ZIPに含まれるコミットは `unzip -l wakuwork-circle-main.zip | head -2` の2行目で確認できます。
+
 ```
-3473627 docs: fix report factual accuracy (commit history, status enum, section 13)  ← ZIP生成時点HEAD
+[ZIP HEAD] ← unzip -l の2行目で確認（本レポートコミット後に確定）
+3473627 docs: fix report factual accuracy (commit history, status enum, section 13)
 5c2d5fb docs: finalize audit report with verification logs
 b7f10ce fix: audit alignment - approve owner check, CI env, report sync
 a87fdc8 docs: add implementation report for audit (2026-02-03)
