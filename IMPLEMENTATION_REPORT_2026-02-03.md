@@ -11,23 +11,24 @@
 
 WakuWork Circle の MVP 実装として、TASK-001 から TASK-004 までを完了し、続いて P0/P1 修正を実施しました。現在のリポジトリは安定状態にあり、全ての検証（lint, build, check:colors）をパスしています。
 
-| マイルストーン | 状態      | コミット                |
-| -------------- | --------- | ----------------------- |
-| TASK-001〜004  | ✅ 完了   | `3100431`               |
-| P0/P1 修正     | ✅ 完了   | `0f02231`               |
-| 次タスク       | 📋 未着手 | TASK-005 (休憩チャット) |
+| マイルストーン       | 状態      | コミット                                               |
+| -------------------- | --------- | ------------------------------------------------------ |
+| TASK-001〜004        | ✅ 完了   | `3100431`                                              |
+| P0/P1 修正           | ✅ 完了   | `0f02231`                                              |
+| 監査整合（追加修正） | ✅ 完了   | `b7f10ce` → `5c2d5fb`（owner制限, CI env, 本レポート） |
+| 次タスク             | 📋 未着手 | TASK-005 (休憩チャット)                                |
 
 ---
 
 ## 2. コミット履歴（時系列）
 
 ```
-0f02231 fix: P0/P1 fixes (check:colors, SSoT alignment, guest access)    ← 最新 HEAD
+5c2d5fb docs: finalize audit report with verification logs          ← 現在のHEAD
+b7f10ce fix: audit alignment - approve owner check, CI env, report sync
+a87fdc8 docs: add implementation report for audit (2026-02-03)
+0f02231 fix: P0/P1 fixes (check:colors, SSoT alignment, guest access)
 3100431 feat: implement TASK-001 to TASK-004 (Discord OAuth, Room/Session, Member Status, Stamps)
 24b2d71 docs(ssot): address review iteration 2
-4a920d7 docs(ssot): integrate Q1-Q5 decisions and update SSoT files
-80f7109 fix: Phase 2/3 self-review improvements
-c10ee0c feat(api): Phase 2 - 擬似サーバ（mockState + API Routes）
 ...
 8ded5ab feat: initial commit with project structure
 ```
@@ -76,7 +77,7 @@ c10ee0c feat(api): Phase 2 - 擬似サーバ（mockState + API Routes）
 
 ---
 
-## 4. P0/P1 修正内容（コミット `0f02231`）
+## 4. P0/P1 修正内容（コミット `0f02231` で実施）
 
 ### P0-2: check:colors 修正
 
@@ -115,9 +116,10 @@ c10ee0c feat(api): Phase 2 - 擬似サーバ（mockState + API Routes）
   {
     "code": "ABC123",
     "passphraseRequired": true,
-    "status": "work"
+    "status": "working"
   }
   ```
+  ※ `status` は `SessionState` enum: `working` / `break` / `ended`
 - 認証ユーザーのみフル情報（streamerName, roomName, declaration, participantCount等）を取得可能
 
 **準拠**: D-004「閲覧専用ゲストなし」「外部閲覧提供しない」
@@ -310,18 +312,21 @@ $ pnpm -C apps/web build
 
 ## 13. 成果物情報
 
-| 項目         | 値                                        |
-| ------------ | ----------------------------------------- |
-| ZIP ファイル | `wakuwork-circle-main.zip`                |
-| ZIP サイズ   | 約 210KB（ZIP生成後に確定）               |
-| コミット     | 本レポート確定後のHEAD（ZIP 2行目と一致） |
+| 項目         | 値                                                  |
+| ------------ | --------------------------------------------------- |
+| ZIP ファイル | `wakuwork-circle-main.zip`                          |
+| ZIP サイズ   | **211 KB**                                          |
+| コミット     | **（本レポートコミット後に確定、ZIP 2行目で検証）** |
 
 **検証方法**:
 
 ```bash
 # ZIP内のコミットを確認
 unzip -l wakuwork-circle-main.zip | head -2
-# 2行目の40桁ハッシュ == git rev-parse HEAD（ZIP作成時点）
+# 2行目の40桁ハッシュがZIP作成時のHEAD
+
+# 現在のHEADと比較
+git rev-parse HEAD
 ```
 
 ---
