@@ -277,24 +277,55 @@ unzip -p wakuwork-circle-main.zip .github/workflows/ci.yml | grep "DATABASE_URL"
 
 ## 12. 検証ログ（実行結果）
 
-以下は本レポート確定時の実際のコマンド出力:
+以下は本レポート確定時の実際のコマンド出力（2026-02-03 実行）:
 
-```
-[検証ログは ZIP 生成直前に挿入]
+```bash
+# 環境変数設定（CI と同様）
+$ export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres?schema=public"
+$ export DIRECT_URL="postgresql://postgres:postgres@localhost:5432/postgres?schema=public"
+
+# check:colors
+$ pnpm -w run check:colors
+> wakuwork-circle@ check:colors
+> node scripts/no-color-literals.mjs
+🔍 Checking for color literals in source files...
+✅ No color literals found! All colors use CSS variables.
+
+# lint
+$ pnpm -C apps/web lint
+> web@0.1.0 lint
+> next lint
+✔ No ESLint warnings or errors
+
+# build
+$ pnpm -C apps/web build
+> web@0.1.0 build
+> prisma generate && next build
+✔ Generated Prisma Client (v7.3.0) to .\src\generated\prisma in 60ms
+✓ Compiled successfully
+✓ Generating static pages (14/14)
 ```
 
 ---
 
 ## 13. 成果物情報
 
-| 項目         | 値                         |
-| ------------ | -------------------------- |
-| ZIP ファイル | `wakuwork-circle-main.zip` |
-| ZIP サイズ   | [ZIP生成後に記入]          |
-| コミット     | [ZIP生成後に記入]          |
+| 項目         | 値                                        |
+| ------------ | ----------------------------------------- |
+| ZIP ファイル | `wakuwork-circle-main.zip`                |
+| ZIP サイズ   | 約 210KB（ZIP生成後に確定）               |
+| コミット     | 本レポート確定後のHEAD（ZIP 2行目と一致） |
+
+**検証方法**:
+
+```bash
+# ZIP内のコミットを確認
+unzip -l wakuwork-circle-main.zip | head -2
+# 2行目の40桁ハッシュ == git rev-parse HEAD（ZIP作成時点）
+```
 
 ---
 
 **報告終了**
 
-_このレポートは `wakuwork-circle-main.zip` と共に監査に使用されることを想定しています。成果物情報（Section 13）のコミットハッシュとZIPヘッダの2行目が一致することを確認してください。_
+_このレポートは `wakuwork-circle-main.zip` と共に監査に使用されることを想定しています。ZIPヘッダの2行目に含まれるコミットハッシュが、レポート作成時のHEADと一致することを確認してください。_
