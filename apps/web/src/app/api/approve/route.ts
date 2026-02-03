@@ -6,6 +6,7 @@ import {
   rejectJoinRequest,
   getPendingUsers,
   getSessionParticipants,
+  getSessionByCode,
 } from "@/lib/services/session";
 
 /**
@@ -81,7 +82,10 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/approve?code=XXX
- * 承認待ちリストと参加者リストを取得（配信者のみ）
+ * 承認待ちリストと参加者リストを取得（ルームオーナーのみ）
+ *
+ * セキュリティ: isStreamer だけでなく、そのセッションのルームオーナーかどうかも検証
+ * 他の配信者が他人のセッションの pending/participants を覗けないようにする
  */
 export async function GET(request: NextRequest) {
   try {
@@ -106,6 +110,27 @@ export async function GET(request: NextRequest) {
 
     if (!code) {
       return NextResponse.json({ error: "code が必要です" }, { status: 400 });
+    }
+
+    // Get actor's internal user ID
+    const actorUserId = await ensureUser(session);
+
+    // Verify the actor is the owner of the session's room
+    // Return 404 (not 403) to prevent existence inference
+    const sessionRecord = await getSessionByCode(code);
+    if (!sessionRecord) {
+      return NextResponse.json(
+        { error: "セッションが見つかりません" },
+        { status: 404 },
+      );
+    }
+
+    if (sessionRecord.room.ownerId !== actorUserId) {
+      // Return 404 instead of 403 to prevent probing
+      return NextResponse.json(
+        { error: "セッションが見つかりません" },
+        { status: 404 },
+      );
     }
 
     // Get pending users and participants
