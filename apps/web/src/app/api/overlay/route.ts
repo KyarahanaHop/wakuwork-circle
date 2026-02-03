@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// B-2: Code pattern validation (6-12 uppercase alphanumeric)
+const CODE_PATTERN = /^[A-Z0-9]{6,12}$/;
+
 /**
  * GET /api/overlay?code=XXX
  * OBS overlay用の公開データを取得
@@ -9,28 +12,35 @@ import { prisma } from "@/lib/prisma";
  * - 認証不要（OBSから直接アクセスするため）
  * - 個人情報（discordId等）は一切返さない
  * - セッションコードを知っている人のみアクセス可能
+ * - B-2: 不正なcode形式はDBに問い合わせる前に弾く
  */
 export async function GET(request: NextRequest) {
   try {
-    const code = request.nextUrl.searchParams.get("code");
+    const rawCode = request.nextUrl.searchParams.get("code");
 
-    if (!code) {
+    if (!rawCode) {
       return NextResponse.json({ error: "code が必要です" }, { status: 400 });
     }
 
-    // Get session with minimal data needed for overlay
+    // B-2: Validate code format before DB query (brute-force mitigation)
+    const code = rawCode.toUpperCase();
+    if (!CODE_PATTERN.test(code)) {
+      // Return 404 to avoid existence inference (same as "not found")
+      return NextResponse.json(
+        { error: "セッションが見つかりません" },
+        { status: 404 },
+      );
+    }
+
+    // Get session (minimal fields only)
     const session = await prisma.session.findUnique({
-      where: { code: code.toUpperCase() },
-      include: {
-        members: {
-          select: {
-            isCompleted: true,
-          },
-        },
-        joinRequests: {
-          where: { status: "pending" },
-          select: { id: true }, // Only count, no personal data
-        },
+      where: { code },
+      select: {
+        id: true,
+        code: true,
+        state: true,
+        startedAt: true,
+        endedAt: true,
       },
     });
 
@@ -41,10 +51,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Calculate stats
-    const participantsCount = session.members.length;
-    const completedCount = session.members.filter((m) => m.isCompleted).length;
-    const pendingCount = session.joinRequests.length;
+    // B-1: Use count queries instead of fetching arrays (lightweight)
+    const [participantsCount, completedCount, pendingCount] = await Promise.all(
+      [
+        prisma.sessionMember.count({ where: { sessionId: session.id } }),
+        prisma.sessionMember.count({
+          where: { sessionId: session.id, isCompleted: true },
+        }),
+        prisma.joinRequest.count({
+          where: { sessionId: session.id, status: "pending" },
+        }),
+      ],
+    );
 
     // Get recent stamps (last 60 seconds, aggregated by type)
     const sixtySecondsAgo = new Date(Date.now() - 60000);

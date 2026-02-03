@@ -164,6 +164,16 @@ export default function RoomPage() {
   } | null>(null);
   const isUpdatingRef = useRef(false);
 
+  // TASK-006: Break message (休憩ひとこと) state
+  const [breakMessages, setBreakMessages] = useState<
+    Array<{ id: string; content: string; createdAt: string }>
+  >([]);
+  const [breakMessageInput, setBreakMessageInput] = useState("");
+  const [isPostingBreakMessage, setIsPostingBreakMessage] = useState(false);
+  const [breakMessageError, setBreakMessageError] = useState<string | null>(
+    null,
+  );
+
   const elapsedTime = useElapsedTime(sessionData?.startedAt || null);
 
   // Redirect to login if not authenticated
@@ -314,6 +324,74 @@ export default function RoomPage() {
       return () => clearInterval(interval);
     }
   }, [fetchStamps, authStatus, sessionData]);
+
+  // TASK-006: Fetch break messages
+  const fetchBreakMessages = useCallback(async () => {
+    if (authStatus !== "authenticated" || !sessionData) return;
+
+    // Only fetch when in break state
+    if (sessionData.status !== "break") {
+      setBreakMessages([]);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/break-messages?code=${code}`);
+      if (!res.ok) return;
+
+      const data = await res.json();
+      if (data.messages) {
+        setBreakMessages(data.messages);
+      }
+    } catch {
+      // Silently ignore polling errors
+    }
+  }, [code, authStatus, sessionData]);
+
+  // TASK-006: Break message polling effect
+  useEffect(() => {
+    if (authStatus === "authenticated" && sessionData?.status === "break") {
+      // Initial fetch
+      fetchBreakMessages();
+
+      // Poll every 2 seconds
+      const interval = setInterval(fetchBreakMessages, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [fetchBreakMessages, authStatus, sessionData?.status]);
+
+  // TASK-006: Post break message
+  const handlePostBreakMessage = async () => {
+    if (!breakMessageInput.trim() || isPostingBreakMessage) return;
+
+    setIsPostingBreakMessage(true);
+    setBreakMessageError(null);
+
+    try {
+      const res = await fetch(`/api/break-messages?code=${code}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: breakMessageInput.trim() }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setBreakMessageError(data.error || "送信に失敗しました");
+        setTimeout(() => setBreakMessageError(null), 3000);
+        return;
+      }
+
+      // Clear input on success
+      setBreakMessageInput("");
+      // Refresh messages
+      fetchBreakMessages();
+    } catch {
+      setBreakMessageError("送信に失敗しました");
+      setTimeout(() => setBreakMessageError(null), 3000);
+    } finally {
+      setIsPostingBreakMessage(false);
+    }
+  };
 
   // API call to update member status (with queue for rapid changes)
   const updateStatus = useCallback(
@@ -806,7 +884,7 @@ export default function RoomPage() {
           </p>
         </div>
 
-        {/* Chat - Break time only */}
+        {/* TASK-006: 休憩ひとこと - Break time only */}
         <div
           className="p-4 rounded-lg"
           style={{
@@ -816,7 +894,7 @@ export default function RoomPage() {
         >
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium">
-              チャット
+              休憩ひとこと
               {sessionData.status === "break" && (
                 <span
                   className="ml-2 text-xs px-2 py-0.5 rounded-full"
@@ -841,21 +919,98 @@ export default function RoomPage() {
 
           {sessionData.status === "break" ? (
             <>
+              {/* Message list */}
               <div className="space-y-2 mb-3 max-h-40 overflow-y-auto">
-                <p className="text-sm" style={{ color: "var(--muted)" }}>
-                  休憩中はチャットが利用できます
-                </p>
+                {breakMessages.length === 0 ? (
+                  <p
+                    className="text-sm text-center py-2"
+                    style={{ color: "var(--muted)" }}
+                  >
+                    まだひとこともありません
+                  </p>
+                ) : (
+                  breakMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className="flex items-start gap-2 p-2 rounded-lg text-sm"
+                      style={{ background: "var(--surface2)" }}
+                    >
+                      <span className="flex-1">{msg.content}</span>
+                      <span
+                        className="text-xs shrink-0"
+                        style={{ color: "var(--muted)" }}
+                      >
+                        {new Date(msg.createdAt).toLocaleTimeString("ja-JP", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
-              <input
-                type="text"
-                placeholder="メッセージを入力..."
-                className="w-full p-2 rounded-lg text-sm"
-                style={{
-                  background: "var(--surface2)",
-                  border: "1px solid var(--border)",
-                  color: "var(--text)",
-                }}
-              />
+              {/* Input field */}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={breakMessageInput}
+                    onChange={(e) => {
+                      // Max 30 chars, no newlines
+                      const val = e.target.value.replace(/[\r\n]/g, "");
+                      if (val.length <= 30) {
+                        setBreakMessageInput(val);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handlePostBreakMessage();
+                      }
+                    }}
+                    placeholder="ひとこと入力（30字以内）"
+                    disabled={isPostingBreakMessage}
+                    className="w-full p-2 pr-12 rounded-lg text-sm"
+                    style={{
+                      background: "var(--surface2)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text)",
+                    }}
+                  />
+                  <span
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs"
+                    style={{
+                      color:
+                        breakMessageInput.length >= 25
+                          ? "var(--warning)"
+                          : "var(--muted)",
+                    }}
+                  >
+                    {breakMessageInput.length}/30
+                  </span>
+                </div>
+                <button
+                  onClick={handlePostBreakMessage}
+                  disabled={
+                    isPostingBreakMessage || breakMessageInput.trim() === ""
+                  }
+                  className="px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+                  style={{
+                    background: "var(--primary)",
+                    color: "var(--primaryText)",
+                  }}
+                >
+                  送信
+                </button>
+              </div>
+              {breakMessageError && (
+                <p className="text-xs mt-2" style={{ color: "var(--danger)" }}>
+                  {breakMessageError}
+                </p>
+              )}
+              <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>
+                ※返信/スレッド機能はありません（フィード形式）
+              </p>
             </>
           ) : (
             <div
@@ -863,7 +1018,7 @@ export default function RoomPage() {
               style={{ background: "var(--surface2)" }}
             >
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                💬 休憩時間になるとチャットが利用できます
+                💬 休憩時間になるとひとことが利用できます
               </p>
               <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
                 作業中はスタンプで反応を送りましょう

@@ -76,6 +76,7 @@ model User {
   presenceEvents     PresenceEvent[]
   supportEvents      SupportEvent[]
   stampEvents        StampEvent[]
+  breakMessages      BreakMessage[]
   moderationActions  ModerationAction[] @relation("ModerationActor")
   moderationTargets  ModerationAction[] @relation("ModerationTarget")
   reportsSubmitted   Report[]           @relation("ReportReporter")
@@ -124,6 +125,7 @@ model Session {
   presenceEvents  PresenceEvent[]
   supportEvents   SupportEvent[]
   stampEvents     StampEvent[]
+  breakMessages   BreakMessage[]
   moderationActions ModerationAction[]
   reports         Report[]
   pinnedMessages  PinnedMessage[]
@@ -273,6 +275,22 @@ model StampEvent {
   // Relations
   session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+/// BreakMessage - Break-time one-liner feed (NOT a chat, no replies)
+/// TASK-006: 休憩ひとこと - 休憩中のみ投稿/閲覧可能
+model BreakMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  authorId  String
+  content   String   @db.VarChar(30) // Max 30 chars, no newlines
+  createdAt DateTime @default(now())
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([sessionId, createdAt])
 }
