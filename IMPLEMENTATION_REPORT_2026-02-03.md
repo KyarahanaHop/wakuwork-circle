@@ -3,7 +3,7 @@
 > **報告日**: 2026-02-03  
 > **対象期間**: 2026-02-01 〜 2026-02-03  
 > **報告者**: Sisyphus (AI実装エージェント)  
-> **監査用zip**: `wakuwork-circle-main.zip` (サイズ・コミットは末尾参照)
+> **監査用zip**: `wakuwork-circle-main.zip`（サイズ/commitはZIPヘッダ2行目の40桁SHAを正とする。検証: Section 7）
 
 ---
 
@@ -22,13 +22,14 @@ WakuWork Circle の MVP 実装として、TASK-001 から TASK-004 までを完�
 
 ## 2. コミット履歴（時系列）
 
-本レポートは複数回の監査修正を経て更新されています。ZIPに含まれるコミットは `unzip -l wakuwork-circle-main.zip | head -2` の2行目で確認できます。
+**[ZIP HEAD]（正）**: `unzip -l wakuwork-circle-main.zip | head -2` の2行目（40桁SHA）
+
+以下は主要コミットの抜粋。ZIPのHEADは上記のZIPヘッダを正とする:
 
 ```
-[ZIP HEAD] ← unzip -l の2行目で確認（本レポートコミット後に確定）
-3473627 docs: fix report factual accuracy (commit history, status enum, section 13)
-5c2d5fb docs: finalize audit report with verification logs
 b7f10ce fix: audit alignment - approve owner check, CI env, report sync
+5c2d5fb docs: finalize audit report with verification logs
+3473627 docs: fix report factual accuracy (commit history, status enum, section 13)
 a87fdc8 docs: add implementation report for audit (2026-02-03)
 0f02231 fix: P0/P1 fixes (check:colors, SSoT alignment, guest access)
 3100431 feat: implement TASK-001 to TASK-004 (Discord OAuth, Room/Session, Member Status, Stamps)
@@ -178,14 +179,14 @@ $ pnpm -C apps/web build
 
 `wakuwork-circle-main.zip` の内容が最新であることを確認する手順:
 
-### 7.1 コミットID確認
+### 7.1 コミットID確認（正）
 
 `git archive` で作成したZIPは、リスト2行目にコミットハッシュを含む:
 
 ```bash
 unzip -l wakuwork-circle-main.zip | head -2
 # 期待: 2行目に 40桁のコミットハッシュ（例: a1b2c3d4...）
-# これが本レポート末尾記載のコミットと一致すること
+# 2行目の40桁ハッシュがZIP作成時点のHEADであること（本レポートはこの値を正とする）
 ```
 
 ### 7.2 主要ファイルの内容確認
